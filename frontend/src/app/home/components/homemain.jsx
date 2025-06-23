@@ -7,7 +7,8 @@ import Cards from './cards'
 
 const Homemain = () => {
   return (
-    <div className='bg-gray-200'>
+    <div className='bg-black'>
+      
       <Banner />
       <Cards />
       <Categories />

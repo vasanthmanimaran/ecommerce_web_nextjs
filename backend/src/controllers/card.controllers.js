@@ -25,9 +25,13 @@ exports.createcardImage = async (req, res) => {
 exports.getAllCards = async (req, res) => {
   try {
     const cards = await cardData.find();
+    console.log(cards);
+    
     res.json(cards);
   } catch (err) {
     res.status(500).json({ message: err.message });
+    console.log(err);
+    
   }
 };
 

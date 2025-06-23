@@ -23,12 +23,12 @@ exports.createImage = async (req, res) => {
 };
 
 // READ ALL
-exports.getAllImages = async (req, res) => {
+exports.getallimages = async (req, res) => {
   try {
     const images = await ImageData.find();
     res.json(images);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ message: err.message });    
   }
 };
 
