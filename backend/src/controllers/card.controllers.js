@@ -4,7 +4,7 @@ const path = require('path');
 
 exports.createcardImage = async (req, res) => {
   try {
-    const { title, alt, ratings,price } = req.body;
+    const { title, alt, ratings,price , type} = req.body;
     if (!req.file) {
       return res.status(400).json({ message: 'Image is required' });
     }
@@ -16,6 +16,7 @@ exports.createcardImage = async (req, res) => {
       ratings: parseFloat(ratings),
       imageUrl,
       price,
+      type,
     };
 
     const savedImage = await cardData.create(imageDoc); // Using create instead of insertMany for single document
@@ -49,7 +50,7 @@ exports.getCardById = async (req, res) => {
 // UPDATE by ID
 exports.updateCard = async (req, res) => {
   try {
-    const { title, alt, ratings ,price } = req.body;
+    const { title, alt, ratings ,price ,type } = req.body;
     const card = await cardData.findById(req.params.id);
     if (!card) return res.status(404).json({ message: 'Not Found' });
 
@@ -64,6 +65,7 @@ exports.updateCard = async (req, res) => {
     card.title = title || card.title;
     card.alt = alt || card.alt;
     card.price = price || card.price;
+    card.type = type || card.type;
     card.ratings = ratings !== undefined ? parseFloat(ratings) : card.ratings;
 
     await card.save();

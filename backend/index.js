@@ -3,28 +3,25 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const path = require('path');
 
-const app = express();
-
 dotenv.config();
 
-// Connect to MongoDB
-require('./src/mongo/mongo'); // Adjust path if needed
+const app = express();
 
-// Middlewares
-app.use(cors({
-  origin: 'http://localhost:3000', // Allow frontend origin
-}));
-app.use(express.json()); // Parse JSON body
-app.use(express.urlencoded({ extended: true })); // Parse URL-encoded data
+// DB
+require('./src/mongo/mongo');
 
-// Serve uploaded images statically
+// Middleware
+app.use(cors({ origin: 'http://localhost:3000' }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Static uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// All routes
-app.use(require('./src/routes/routes')); // Adjust path if routes are nested
+// API routes
+app.use('/', require('./src/routes/routes'));
 
-// Start the server
-const PORT = process.env.PORT || 7000; // Updated to 7001
+const PORT = process.env.PORT || 7000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

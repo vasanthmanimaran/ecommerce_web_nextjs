@@ -1,16 +1,27 @@
 const mongoose = require('../mongo/mongo');
 
 const cardSchema = new mongoose.Schema({
-  title: String,
-  alt: String,
-  imageUrl: String,
-  price: Number,
+  title: {
+    type: String,
+  },
+  alt: {
+    type: String,
+  },
+  imageUrl: {
+    type: String,
+  },
+  price: {
+    type: Number,
+  },
+  type: {
+    type: String,
+    enum: ['headphones', 'speakers', 'earphones', 'keyboard','speaker'],
+  },
   ratings: {
     type: Number,
     min: 0,
     max: 5,
-    required: true,
-  },
+  }
 }, { timestamps: true });
 
 module.exports = mongoose.model('carddata', cardSchema);

@@ -70,7 +70,7 @@ const ProductPage = () => {
             <button className="bg-white text-black px-6 py-2 rounded hover:bg-black hover:text-white border hover:scale-105 border-white transition duration-700">
               Add to Cart
             </button>
-            <Link href="/payment">
+           <Link href={`/payment/${id}`}>
               <button className="border border-white px-6 py-2 rounded hover:bg-white hover:text-black transition duration-700  hover:scale-105">
                 Buy Now
               </button>
