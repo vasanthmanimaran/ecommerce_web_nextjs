@@ -1,19 +1,21 @@
-"use client"
+"use client"; // 🔧 This makes the file a client component
 
-import React from 'react'
-import Categories from './categories'
-import Banner from './banner'
-import Cards from './cards'
+import React from 'react';
+import { usePathname } from 'next/navigation'; // ✅ Client-side hook
+import Categories from './categories';
+import Banner from './banner';
+import Cards from './cards';
 
 const Homemain = () => {
-  return (
-    <div className='bg-black'>
-      
-      <Banner />
-      <Cards />
-      <Categories />
-    </div>
-  )
-}
+  const pathname = usePathname();
 
-export default Homemain
+  return (
+    <div className="bg-black">
+      <Banner />
+      <Cards key={pathname} /> {/* ✅ Forces fresh re-render */}
+      <Categories />
+    </div>  
+  );
+};
+
+export default Homemain;

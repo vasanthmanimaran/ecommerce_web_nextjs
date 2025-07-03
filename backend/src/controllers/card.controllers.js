@@ -2,36 +2,36 @@ const cardData = require('../models/card.models');
 const fs = require('fs');
 const path = require('path');
 
-
 exports.createcardImage = async (req, res) => {
-    try {
-        const { title, alt } = req.body;
-        const imageUrls = req.files.map(file => `/uploads/${file.filename}`);
-
-        const imageDocs = imageUrls.map(url => ({
-            title,
-            alt,
-            imageUrl: url,
-        }));
-
-        const savedImages = await cardData.insertMany(imageDocs);
-        res.status(201).json(savedImages);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+  try {
+    const { title, alt, ratings,price } = req.body;
+    if (!req.file) {
+      return res.status(400).json({ message: 'Image is required' });
     }
+    const imageUrl = `/uploads/${req.file.filename}`;
+
+    const imageDoc = {
+      title,
+      alt,
+      ratings: parseFloat(ratings),
+      imageUrl,
+      price,
+    };
+
+    const savedImage = await cardData.create(imageDoc); // Using create instead of insertMany for single document
+    res.status(201).json(savedImage);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
 // READ ALL
 exports.getAllCards = async (req, res) => {
   try {
     const cards = await cardData.find();
-    console.log(cards);
-    
     res.json(cards);
   } catch (err) {
     res.status(500).json({ message: err.message });
-    console.log(err);
-    
   }
 };
 
@@ -49,11 +49,10 @@ exports.getCardById = async (req, res) => {
 // UPDATE by ID
 exports.updateCard = async (req, res) => {
   try {
-    const { title, alt } = req.body;
+    const { title, alt, ratings ,price } = req.body;
     const card = await cardData.findById(req.params.id);
     if (!card) return res.status(404).json({ message: 'Not Found' });
 
-    // If new image uploaded, remove old one and set new one
     if (req.file) {
       if (card.imageUrl) {
         const oldPath = path.join(__dirname, '../../uploads', path.basename(card.imageUrl));
@@ -64,6 +63,8 @@ exports.updateCard = async (req, res) => {
 
     card.title = title || card.title;
     card.alt = alt || card.alt;
+    card.price = price || card.price;
+    card.ratings = ratings !== undefined ? parseFloat(ratings) : card.ratings;
 
     await card.save();
     res.json(card);

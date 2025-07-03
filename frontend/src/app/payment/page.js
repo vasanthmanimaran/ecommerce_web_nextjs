@@ -1,12 +1,12 @@
 import React from 'react'
-import Productpage from './productpage'
+import Payment from './components/payment'
 
 const page = () => {
   return (
     <div>
-      <Productpage />
+      <Payment />
     </div>
   )
 }
 
-export default page
+export default page;

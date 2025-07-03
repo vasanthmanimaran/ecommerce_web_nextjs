@@ -2,21 +2,24 @@ const ImageData = require('../models/models');
 const fs = require('fs');
 const path = require('path');
 
-// CREATE (multiple images allowed)
+// CREATE (single image)
 exports.createImage = async (req, res) => {
   try {
     const { title, subtitle, button } = req.body;
-    const imageUrls = req.files.map(file => `/uploads/${file.filename}`);
+    if (!req.file) {
+      return res.status(400).json({ message: 'Image is required' });
+    }
+    const imageUrl = `/uploads/${req.file.filename}`;
 
-    const imageDocs = imageUrls.map(url => ({
+    const imageDoc = {
       title,
       subtitle,
       button,
-      imageUrl: url,
-    }));
+      imageUrl,
+    };
 
-    const savedImages = await ImageData.insertMany(imageDocs);
-    res.status(201).json(savedImages);
+    const savedImage = await ImageData.create(imageDoc); // Using create instead of insertMany for single document
+    res.status(201).json(savedImage);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -46,13 +49,12 @@ exports.getImageById = async (req, res) => {
 // UPDATE (with optional new image)
 exports.updateImage = async (req, res) => {
   try {
-    const { title, subtitle, button} = req.body;
+    const { title, subtitle, button } = req.body;
     const image = await ImageData.findById(req.params.id);
 
     if (!image) return res.status(404).json({ message: 'Not Found' });
 
     if (req.file) {
-      // Remove old image file from disk
       if (image.imageUrl) {
         const filePath = path.join(__dirname, '../../uploads', path.basename(image.imageUrl));
         if (fs.existsSync(filePath)) fs.unlinkSync(filePath);

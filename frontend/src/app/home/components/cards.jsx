@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import Image from 'next/image';
+import { useRouter, usePathname } from 'next/navigation';
 import { motion, useInView, useAnimation } from 'framer-motion';
 import { getcard } from '../services/services';
 
@@ -13,129 +14,61 @@ function Cards() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: false, amount: 0.3 });
   const controls = useAnimation();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const isHome = pathname === '/home' || pathname === '/';
 
   useEffect(() => {
     const fetchCards = async () => {
       try {
         setIsLoading(true);
         const response = await getcard();
-        if (response.data) {
-          const fetchedCards = response.data.map((card) => ({
+        if (Array.isArray(response)) {
+          const fetchedCards = response.map((card) => ({
             id: card._id,
             imageUrl: card.imageUrl?.startsWith('/uploads')
-              ? `http://localhost:3000${card.imageUrl}`
+              ? `http://localhost:7000${card.imageUrl}`
               : card.imageUrl || '/fallback-image.jpg',
             title: card.title || 'Untitled',
             alt: card.alt || `Image for ${card.title || 'card'}`,
+            ratings: card.ratings || 0,
           }));
           setCardsData(fetchedCards);
         } else {
           setError('No data received');
         }
-      } catch (error) {
-        console.error('Error fetching card data:', error);
+      } catch {
         setError('Failed to load cards');
       } finally {
         setIsLoading(false);
       }
     };
-
     fetchCards();
   }, []);
 
   useEffect(() => {
-    if (isInView) {
-      controls.start('visible');
-    } else {
-      controls.start('hidden');
-    }
-  }, [isInView, controls]);
+    if (isHome && isInView) controls.start('visible');
+  }, [isHome, isInView, controls]);
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { duration: 0.8, ease: 'easeOut' },
-    },
-  };
-
-  const titleVariants = {
-    hidden: { opacity: 0, scale: 0.8 },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      transition: {
-        duration: 0.8,
-        ease: 'easeOut',
-      },
-    },
-  };
-
-  const cardVariants = {
-    hidden: (i) => ({
-      opacity: 0,
-      x: i % 2 === 0 ? -100 : 100,
-      y: 50,
-      scale: 0.9,
-    }),
-    visible: (i) => ({
-      opacity: 1,
-      x: 0,
-      y: 0,
-      scale: 1,
-      transition: {
-        delay: i * 0.2,
-        duration: 0.6,
-        ease: 'easeOut',
-      },
-    }),
-  };
+  const renderStars = (rating) =>
+    Array.from({ length: 5 }, (_, i) => (
+      <span key={i} className={`text-lg ${i < rating ? 'text-yellow-400' : 'text-gray-500'}`}>★</span>
+    ));
 
   const titleText = 'TOP BRANDS'.split('');
-  const letterVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: (i) => ({
-      opacity: 1,
-      y: 0,
-      transition: { delay: i * 0.05, duration: 0.3, ease: 'easeOut' },
-    }),
-  };
-
-  const parallaxVariants = {
-    hidden: { y: 0 },
-    visible: {
-      y: 15,
-      transition: { yoyo: Infinity, duration: 3.5, ease: 'easeInOut' },
-    },
-  };
 
   return (
-    <motion.div
+    <div
       ref={ref}
-      initial="hidden"
-      animate={controls}
-      variants={containerVariants}
-      className="w-full max-w-screen-2xl mx-auto py-12 bg-gradient-to-b from-gray-900 via-gray-950 to-black text-white overflow-x-hidden"
+      className="w-full max-w-screen-2xl mx-auto py-12 bg-gradient-to-b from-gray-900 via-gray-800 to-black text-white overflow-x-hidden"
     >
       <div className="py-8 flex justify-center">
-        <motion.h1
-          initial="hidden"
-          animate={controls}
-          variants={titleVariants}
-          className="text-4xl md:text-5xl font-extrabold tracking-tight text-gray-100 animate-pulse"
-        >
+        <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-gray-100 animate-pulse">
           {titleText.map((letter, index) => (
-            <motion.span
-              key={index}
-              custom={index}
-              initial="hidden"
-              animate={controls}
-              variants={letterVariants}
-            >
-              {letter}
-            </motion.span>
+            <span key={index}>{letter}</span>
           ))}
-        </motion.h1>
+        </h1>
       </div>
 
       {isLoading && (
@@ -144,53 +77,46 @@ function Cards() {
         </div>
       )}
 
-      {error && (
-        <div className="text-center text-gray-400 font-semibold py-4">
-          {error}
-        </div>
-      )}
+      {error && <div className="text-center text-gray-400 font-semibold py-4">{error}</div>}
 
       {!isLoading && !error && (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 px-4 md:px-8">
           {cardsdata.map((item, index) => (
-            <motion.div
+            <div
               key={item.id}
-              custom={index}
-              initial="hidden"
-              animate={controls}
-              variants={cardVariants}
-              className="relative rounded-xl overflow-hidden shadow-2xl bg-gray-800 transform transition duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)]"
-              role="article"
-              aria-labelledby={`card-title-${item.id}`}
+              onClick={() => router.push(`/product/${item.id}`)}
+              className="relative rounded-xl overflow-hidden shadow-xl bg-gray-900 border border-gray-700 transform transition-all duration-500 hover:scale-[1.06] hover:shadow-[0_0_35px_rgba(0,255,255,0.4)] hover:border-cyan-400 group perspective cursor-pointer"
             >
-              <div className="relative w-full h-64 overflow-hidden">
-                <motion.div
-                  variants={parallaxVariants}
-                  className="absolute inset-0"
-                >
+              <div className="relative w-full h-64 overflow-hidden transform-gpu transition-transform duration-500 group-hover:rotate-[0.5deg] group-hover:scale-105">
+                <div className="absolute inset-0">
                   <Image
                     fill
-                    className="object-cover transition-opacity duration-300 hover:opacity-80 filter grayscale"
+                    className="object-cover transition duration-500 group-hover:scale-110 group-hover:grayscale-0 filter grayscale"
                     src={item.imageUrl}
                     alt={item.alt}
                     priority={index < 4}
                     placeholder="blur"
                     blurDataURL="/placeholder-image.jpg"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                </motion.div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent" />
+                </div>
               </div>
-              <div
-                className="p-4 text-center font-semibold text-gray-100"
-                id={`card-title-${item.id}`}
-              >
-                {item.title}
+              <div className="p-4">
+                <div className="text-center font-semibold text-gray-100 group-hover:text-cyan-300 transition-colors duration-300 mb-2">
+                  {item.title}
+                </div>
+                <div className="flex justify-center items-center">
+                  <div className="flex items-center space-x-1">
+                    {renderStars(item.ratings)}
+                    <span className="text-sm text-gray-400">({item.ratings.toFixed(1)})</span>
+                  </div>
+                </div>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       )}
-    </motion.div>
+    </div>
   );
 }
 

@@ -13,11 +13,11 @@ const Banner = () => {
     const fetchBanners = async () => {
       try {
         const response = await getbanner();
-        if (response.data) {
-          const fetched = response.data.map((banner) => ({
+        if (response && Array.isArray(response)) {
+          const fetched = response.map((banner) => ({
             id: banner._id,
             imageUrl: banner.imageUrl?.startsWith('/uploads')
-              ? `http://localhost:3000${banner.imageUrl}`
+              ? `http://localhost:7000${banner.imageUrl}`
               : banner.imageUrl,
             title: banner.title,
             subtitle: banner.subtitle,
@@ -75,9 +75,8 @@ const Banner = () => {
       {banners.map((banner, index) => (
         <div
           key={index}
-          className={`absolute top-0 left-0 w-full h-full transition-opacity duration-700 ${
-            index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
-          }`}
+          className={`absolute top-0 left-0 w-full h-full transition-opacity duration-700 ${index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
+            }`}
         >
           <div className="flex flex-col md:flex-row h-full relative">
             {/* 🖼️ Banner Left Half (Image) */}
@@ -86,7 +85,7 @@ const Banner = () => {
               style={{ backgroundImage: `url(${banner.imageUrl})` }}
             >
               <div className="absolute inset-0 bg-black/40"></div>
-             
+
             </div>
 
             {/* 📝 Text Overlay (Right Half) */}
@@ -111,9 +110,8 @@ const Banner = () => {
           <button
             key={index}
             onClick={() => handleDotClick(index)}
-            className={`w-3 h-3 rounded-full border border-white transition transform hover:scale-125 ${
-              currentIndex === index ? 'bg-yellow-500 scale-110 shadow-lg' : 'bg-gray-300 hover:bg-gray-200'
-            }`}
+            className={`w-3 h-3 rounded-full border border-white transition transform hover:scale-125 ${currentIndex === index ? 'bg-yellow-500 scale-110 shadow-lg' : 'bg-gray-300 hover:bg-gray-200'
+              }`}
             disabled={isLoading}
           ></button>
         ))}

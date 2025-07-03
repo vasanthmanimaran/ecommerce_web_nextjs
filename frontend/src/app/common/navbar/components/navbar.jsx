@@ -1,9 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import Image from "next/image";
+import Link from "next/link";
 import { Search, Menu, X } from "lucide-react";
-import logo from "../../../../../public/newlogo.svg"; // Adjust path as needed
 
 const Navbar = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -12,119 +11,66 @@ const Navbar = () => {
   const handleSearch = (e) => {
     e.preventDefault();
     const query = e.target.elements.search.value;
-    console.log("Search query:", query); // Replace with actual search logic
+    console.log("Search query:", query);
     setIsSearchOpen(false);
   };
 
   const toggleSearch = () => {
-    setIsSearchOpen(!isSearchOpen);
-    if (isMenuOpen) setIsMenuOpen(false); // Close menu if search is opened
+    setIsSearchOpen((prev) => !prev);
+    if (isMenuOpen) setIsMenuOpen(false);
   };
 
   const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-    if (isSearchOpen) setIsSearchOpen(false); // Close search if menu is opened
+    setIsMenuOpen((prev) => !prev);
+    if (isSearchOpen) setIsSearchOpen(false);
   };
 
   return (
-    <nav className="fixed top-0 z-50 w-full bg-black shadow-md font-serif shadow-gray-900">
-      <div className="flex flex-col w-full px-4 sm:px-6 lg:px-8 py-3 max-w-screen-xl mx-auto">
-        <div className="flex justify-center items-center w-full">        
-          <div className="hidden lg:flex items-center gap-15">
-            <a
-              href="#"
-              className="text-white text-base hover:text-yellow-300 transition-colors"
-              aria-label="Home"
-            >
-              Home
-            </a>
-            <a
-              href="#"
-              className="text-white text-base hover:text-yellow-300 transition-colors"
-              aria-label="Products"
-            >
-              Products
-            </a>
-            <a
-              href="#"
-              className="text-white text-base hover:text-yellow-300 transition-colors"
-              aria-label="Categories"
-            >
-              Categories
-            </a>
-            <a
-              href="#"
-              className="text-white text-base hover:text-yellow-300 transition-colors"
-              aria-label="Cart"
-            >
-              Cart
-            </a>
-            <div className="relative flex items-center">
+    <nav className="fixed flex top-0 z-50 w-full bg-black shadow-md shadow-gray-900 font-sans">
+      <div className="max-w-screen-xl mx-auto flex flex-col px-4 sm:px-6 lg:px-8 py-3">
+        {/* Top Row */}
+        <div className="flex items-center justify-between">
+          {/* Desktop Nav */}
+          <div className="hidden lg:flex items-center space-x-8">
+            <Link href="/home" className="text-white hover:text-yellow-300 text-sm">Home</Link>
+            <Link href="/allproducts" className="text-white hover:text-yellow-300 text-sm">All Products</Link>
+            <Link href="/categories" className="text-white hover:text-yellow-300 text-sm">Categories</Link>
+            <Link href="/cart" className="text-white hover:text-yellow-300 text-sm">Cart</Link>
+            <Link href="/login" className="text-white border border-white px-4 py-1.5 rounded hover:border-yellow-300 hover:text-yellow-300 hover:scale-105 transition duration-300 text-sm">Login</Link>
+
+            {/* Search */}
+            <div className="relative">
               {isSearchOpen ? (
                 <form onSubmit={handleSearch} className="relative flex items-center">
                   <input
                     type="text"
                     name="search"
-                    placeholder="Search products..."
-                    className="border border-gray-300 rounded-md py-1.5 pl-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300 text-white bg-gray-800 w-40 sm:w-48 lg:w-64 transition-all"
+                    placeholder="Search..."
+                    className="bg-gray-800 text-white border border-gray-600 rounded-md py-1.5 px-3 w-48 focus:outline-none focus:ring-1 focus:ring-white text-sm"
                     autoFocus
-                    aria-label="Search products"
                   />
-                  <button
-                    type="submit"
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1"
-                    aria-label="Submit search"
-                  >
-                    <Search
-                      className="w-5 h-5 text-white hover:text-yellow-300 transition-colors"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    />
+                  <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2">
+                    <Search className="h-4 w-4 text-white" />
                   </button>
                 </form>
               ) : (
-                <button
-                  onClick={toggleSearch}
-                  className="p-1"
-                  aria-label="Open search"
-                >
-                  <Search
-                    className="w-5 h-5 text-white hover:text-yellow-300 transition-colors"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  />
+                <button onClick={toggleSearch} aria-label="Open search">
+                  <Search className="h-5 w-5 text-white hover:text-yellow-300" />
                 </button>
               )}
             </div>
-            <a
-              href="#"
-              className="text-white bg-black px-4 py-1.5 rounded-md hover:text-yellow-300 hover:border-yellow-300 hover:scale-105 transition-all ease-in-out border border-white duration-300 text-sm"
-              aria-label="Login"
-            >
-              Login
-            </a>
           </div>
 
-          {/* Mobile Menu and Search Buttons */}
+          {/* Mobile Icons */}
           <div className="lg:hidden flex items-center gap-3">
-            <button
-              onClick={toggleSearch}
-              className="p-1"
-              aria-label={isSearchOpen ? "Close search" : "Open search"}
-            >
+            <button onClick={toggleSearch} aria-label="Search toggle">
               {isSearchOpen ? (
                 <X className="w-6 h-6 text-white" />
               ) : (
                 <Search className="w-6 h-6 text-white" />
               )}
             </button>
-            <button
-              onClick={toggleMenu}
-              className="p-1"
-              aria-label={isMenuOpen ? "Close menu" : "Open menu"}
-            >
+            <button onClick={toggleMenu} aria-label="Menu toggle">
               {isMenuOpen ? (
                 <X className="w-6 h-6 text-white" />
               ) : (
@@ -136,69 +82,30 @@ const Navbar = () => {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="lg:hidden mt-4 flex flex-col space-y-3 pb-4 transition-all duration-300 ease-in-out">
-            <a
-              href="#"
-              className="text-white text-base hover:text-yellow-300 text-center py-1"
-              aria-label="Home"
-            >
-              Home
-            </a>
-            <a
-              href="#"
-              className="text-white text-base hover:text-yellow-300 text-center py-1"
-              aria-label="Products"
-            >
-              Products
-            </a>
-            <a
-              href="#"
-              className="text-white text-base hover:text-yellow-300 text-center py-1"
-              aria-label="Categories"
-            >
-              Categories
-            </a>
-            <a
-              href="#"
-              className="text-white text-base hover:text-yellow-300 text-center py-1"
-              aria-label="Cart"
-            >
-              Cart
-            </a>
-            {isSearchOpen && (
-              <form
-                onSubmit={handleSearch}
-                className="relative flex items-center w-full max-w-md mx-auto"
-              >
-                <input
-                  type="text"
-                  name="search"
-                  placeholder="Search products..."
-                  className="border border-gray-300 rounded-md py-1.5 pl-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300 text-white bg-gray-800 w-full"
-                  autoFocus
-                  aria-label="Search products"
-                />
-                <button
-                  type="submit"
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1"
-                  aria-label="Submit search"
-                >
-                  <Search
-                    className="w-5 h-5 text-white hover:text-yellow-300 transition-colors"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  />
-                </button>
-              </form>
-            )}
-            <a
-              href="#"
-              className="text-white bg-black border border-white px-4 py-1.5 rounded-md hover:text-yellow-300 hover:border-yellow-300 hover:scale-105 transition-all duration-300 text-center text-sm"
-              aria-label="Login"
-            >
-              Login
-            </a>
+          <div className="lg:hidden mt-4 flex flex-col space-y-3 pb-4">
+            <Link href="/home" className="text-white hover:text-yellow-300 text-center text-sm">Home</Link>
+            <Link href="/allproducts" className="text-white hover:text-yellow-300 text-center text-sm">All Products</Link>
+            <Link href="/categories" className="text-white hover:text-yellow-300 text-center text-sm">Categories</Link>
+            <Link href="/cart" className="text-white hover:text-yellow-300 text-center text-sm">Cart</Link>
+            <Link href="/login" className="text-white text-sm border border-white py-1 px-4 mx-auto rounded hover:text-yellow-300 hover:border-yellow-300 transition">Login</Link>
+          </div>
+        )}
+
+        {/* Mobile Search */}
+        {isSearchOpen && !isMenuOpen && (
+          <div className="mt-2 lg:hidden">
+            <form onSubmit={handleSearch} className="relative flex items-center">
+              <input
+                type="text"
+                name="search"
+                placeholder="Search..."
+                className="w-full bg-gray-800 text-white border border-gray-600 rounded-md py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                autoFocus
+              />
+              <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2">
+                <Search className="h-5 w-5 text-white" />
+              </button>
+            </form>
           </div>
         )}
       </div>

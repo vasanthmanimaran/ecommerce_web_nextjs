@@ -19,14 +19,14 @@ const {
 } = require('../controllers/card.controllers');
 
 // Banner routes
-router.post('/postbanner', upload.array('images', 10), createImage);
+router.post('/postbanner', upload.single('images'), createImage); // Changed to single file
 router.get('/getbanner', getallimages);
 router.get('/getbannerbyid/:id', getImageById);
 router.put('/putbanner/:id', upload.single('image'), updateImage);
-router.delete('/:id', deleteImage);
+router.delete('/deletebanner/:id', deleteImage); // Updated to /deletebanner/:id
 
 // Card routes
-router.post('/postcard', upload.array('images', 2), createcardImage);
+router.post('/postcard', upload.single('images'), createcardImage); // Changed to single file
 router.get('/getcard', getAllCards);
 router.get('/getcardbyid/:id', getCardById);
 router.put('/putcard/:id', upload.single('image'), updateCard);

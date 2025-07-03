@@ -1,7 +1,7 @@
 "use client"
 
 import React from 'react'
-import Homemain from './components/homemain'
+import Homemain from './components/homemain';
 
 const page = () => {
   return (

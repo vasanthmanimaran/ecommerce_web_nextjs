@@ -1,193 +1,195 @@
-'use client';
+"use client";
 
-import React, { useRef, useEffect, useState, Suspense } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { useGLTF } from '@react-three/drei';
-import * as THREE from 'three';
+import { useRef, useEffect, Suspense } from "react";
+import * as THREE from "three";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 
-// 3D models configuration
-const productModels = [
-  { path: "/models/handcontrol.glb", name: "handcontrol", startPosition: [-12, -3, -50], endPosition: [-8, -2, 25], rotation: [0, 0.5, 0] },
-  { path: "/models/Headphones.glb", name: "Headphones", startPosition: [-8, 6, -50], endPosition: [-4, 3, 25], rotation: [0, 0.8, 0] },
-  { path: "/models/pc.glb", name: "pc", startPosition: [10, 2, -50], endPosition: [6, 1, 25], rotation: [0, -0.3, 0] },
-  { path: "/models/vr.glb", name: "vr", startPosition: [8, -4, -50], endPosition: [5, -2, 25], rotation: [0, -0.6, 0] }
+// Planets (no name labels needed now)
+const PLANETS = [
+  { size: 2, color: "#61DAFB", orbitRadius: 15, speed: 0.04, tilt: 0 },
+  { size: 2.5, color: "#ffffff", orbitRadius: 22, speed: 0.015, tilt: 15 },
+  { size: 2.8, color: "#68A063", orbitRadius: 30, speed: 0.01, tilt: 10 },
+  { size: 2.2, color: "#4DB33D", orbitRadius: 37, speed: 0.008, tilt: 5 },
+  { size: 5, color: "#007ACC", orbitRadius: 48, speed: 0.004, tilt: 8 },
+  { size: 4.5, color: "#FFAA00", orbitRadius: 60, speed: 0.003, tilt: 6 },
+  { size: 3.5, color: "#38BDF8", orbitRadius: 72, speed: 0.002, tilt: 12 },
+  { size: 3.5, color: "#aaaaaa", orbitRadius: 85, speed: 0.001, tilt: 14 }
 ];
 
-// Easing function
-const easeInOutCubic = t =>
-  t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+function Planet({ size, color, orbitRadius, speed, tilt }) {
+  const meshRef = useRef();
+  const orbitRef = useRef(0);
 
-// 3D Floating Model Component
-const FloatingProductModel = ({ model, animationPhase, index }) => {
-  const ref = useRef();
-  const gltf = useGLTF(model.path);
+  useFrame(() => {
+    orbitRef.current += speed;
+    const angle = orbitRef.current;
+    const x = Math.cos(angle) * orbitRadius;
+    const z = Math.sin(angle) * orbitRadius;
 
-  const scene = gltf.scene;
-
-  useEffect(() => {
-    scene.traverse((child) => {
-      if (child instanceof THREE.Mesh) {
-        child.material = new THREE.MeshStandardMaterial({
-          color: '#ffffff',
-          metalness: 0.6,
-          roughness: 0.2,
-          transparent: true,
-          opacity: 0.9
-        });
-        child.castShadow = true;
-        child.receiveShadow = true;
-      }
-    });
-  }, [scene]);
-
-  useFrame(({ clock }) => {
-    if (!ref.current) return;
-
-    const t = clock.getElapsedTime();
-    const modelStartTime = (index * 0.25) % 1;
-    const modelPhase = (animationPhase - modelStartTime + 1) % 1;
-
-    if (modelPhase >= 0 && modelPhase <= 1) {
-      const progress = easeInOutCubic(modelPhase);
-      const currentX = THREE.MathUtils.lerp(model.startPosition[0], model.endPosition[0], progress);
-      const currentY = THREE.MathUtils.lerp(model.startPosition[1], model.endPosition[1], progress);
-      const currentZ = THREE.MathUtils.lerp(model.startPosition[2], model.endPosition[2], progress);
-
-      ref.current.position.set(
-        currentX + Math.sin(t * 0.8 + index) * 0.3,
-        currentY + Math.cos(t * 0.6 + index) * 0.2,
-        currentZ
-      );
-
-      const scale = modelPhase < 0.3
-        ? 0.1 + (modelPhase / 0.3) * 0.15
-        : modelPhase < 0.7
-        ? 0.25
-        : 0.25 - ((modelPhase - 0.7) / 0.3) * 0.2;
-
-      ref.current.scale.setScalar(scale);
-
-      ref.current.rotation.set(
-        model.rotation[0] + Math.sin(t * 0.4 + index) * 0.2,
-        model.rotation[1] + t * 0.3 + modelPhase * Math.PI * 2,
-        model.rotation[2] + Math.cos(t * 0.3 + index) * 0.1
-      );
-
-      scene.traverse((child) => {
-        if (child instanceof THREE.Mesh && child.material instanceof THREE.MeshStandardMaterial) {
-          child.material.opacity = 0.9;
-        }
-      });
-    } else {
-      ref.current.scale.setScalar(0);
+    if (meshRef.current) {
+      meshRef.current.position.set(x, 0, z);
+      meshRef.current.rotation.y += speed * 2;
+      meshRef.current.rotation.x = THREE.MathUtils.degToRad(tilt);
     }
   });
 
-  return <primitive object={scene} ref={ref} dispose={null} />;
-};
+  return (
+    <group>
+      {/* Orbit Line */}
+      <line>
+        <bufferGeometry>
+          <bufferAttribute
+            attach="attributes-position"
+            count={128}
+            array={new Float32Array(
+              Array.from({ length: 128 }, (_, i) => {
+                const a = (i / 64) * Math.PI * 2;
+                return [Math.cos(a) * orbitRadius, 0, Math.sin(a) * orbitRadius];
+              }).flat()
+            )}
+            itemSize={3}
+          />
+        </bufferGeometry>
+        <lineBasicMaterial color="#6ABCFD" transparent opacity={0.15} />
+      </line>
 
-// Particle Background Component
-const BackgroundParticles = () => {
-  const particlesRef = useRef();
-  const count = 1000;
+      {/* Planet */}
+      <mesh ref={meshRef}>
+        <sphereGeometry args={[size, 64, 64]} />
+        <meshPhysicalMaterial
+          color={color}
+          emissive={color}
+          emissiveIntensity={0.4}
+          metalness={0.4}
+          roughness={0.6}
+          clearcoat={1}
+          clearcoatRoughness={0.1}
+        />
+      </mesh>
+    </group>
+  );
+}
+
+function Sun() {
+  const sunRef = useRef();
+
+  useFrame(() => {
+    if (sunRef.current) {
+      sunRef.current.rotation.y += 0.002;
+    }
+  });
+
+  return (
+    <mesh ref={sunRef}>
+      <sphereGeometry args={[5, 64, 64]} />
+      <meshPhysicalMaterial
+        color="#FDB813"
+        emissive="#FDB813"
+        emissiveIntensity={2}
+        roughness={0.1}
+        metalness={0.3}
+        clearcoat={1}
+        clearcoatRoughness={0.1}
+      />
+      <pointLight intensity={2} distance={200} decay={2} />
+      <pointLight color="#FF4500" intensity={1.5} distance={150} decay={2} />
+    </mesh>
+  );
+}
+
+function Stars() {
+  const starsRef = useRef();
+  const count = 20000;
   const positions = new Float32Array(count * 3);
   const colors = new Float32Array(count * 3);
-  const velocities = new Float32Array(count * 3);
+  const palette = ["#ffffff", "#e6e6fa", "#87ceeb", "#fffacd", "#f5deb3"];
 
   for (let i = 0; i < count; i++) {
     const i3 = i * 3;
-    positions[i3] = (Math.random() - 0.5) * 100;
-    positions[i3 + 1] = (Math.random() - 0.5) * 60;
-    positions[i3 + 2] = Math.random() * -80 - 20;
+    const radius = Math.random() * 500 + 100;
+    const theta = Math.random() * 2 * Math.PI;
+    const phi = Math.acos(Math.random() * 2 - 1);
 
-    velocities[i3] = (Math.random() - 0.5) * 0.02;
-    velocities[i3 + 1] = (Math.random() - 0.5) * 0.01;
-    velocities[i3 + 2] = Math.random() * 0.1 + 0.05;
+    positions[i3] = radius * Math.sin(phi) * Math.cos(theta);
+    positions[i3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+    positions[i3 + 2] = radius * Math.cos(phi);
 
-    const color = new THREE.Color();
-    color.setHSL(Math.random() * 0.4 + 0.55, Math.random() * 0.5 + 0.5, Math.random() * 0.4 + 0.6);
+    const color = new THREE.Color(palette[Math.floor(Math.random() * palette.length)]);
     colors[i3] = color.r;
     colors[i3 + 1] = color.g;
     colors[i3 + 2] = color.b;
   }
 
-  useFrame(({ clock }) => {
-    const t = clock.getElapsedTime();
-    const pos = particlesRef.current.geometry.attributes.position.array;
-    for (let i = 0; i < count; i++) {
-      const i3 = i * 3;
-      pos[i3] += velocities[i3];
-      pos[i3 + 1] += velocities[i3 + 1];
-      pos[i3 + 2] += velocities[i3 + 2];
-      if (pos[i3 + 2] > 30) {
-        pos[i3] = (Math.random() - 0.5) * 100;
-        pos[i3 + 1] = (Math.random() - 0.5) * 60;
-        pos[i3 + 2] = -80;
-      }
-    }
-    particlesRef.current.geometry.attributes.position.needsUpdate = true;
-    particlesRef.current.rotation.y = Math.sin(t * 0.01) * 0.1;
+  useFrame(() => {
+    if (starsRef.current) starsRef.current.rotation.y += 0.0001;
   });
 
   return (
-    <points ref={particlesRef}>
+    <points ref={starsRef}>
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" count={count} array={positions} itemSize={3} />
         <bufferAttribute attach="attributes-color" count={count} array={colors} itemSize={3} />
       </bufferGeometry>
-      <pointsMaterial size={0.15} sizeAttenuation vertexColors transparent opacity={0.7} blending={THREE.AdditiveBlending} />
+      <pointsMaterial
+        size={0.2}
+        sizeAttenuation
+        vertexColors
+        transparent
+        opacity={0.8}
+        blending={THREE.AdditiveBlending}
+      />
     </points>
   );
-};
+}
 
-// Scene Component
-const Scene = () => {
-  const { camera, gl } = useThree();
-  const [animationPhase, setAnimationPhase] = useState(0);
+function SolarSystem() {
+  const { camera } = useThree();
 
   useEffect(() => {
-    camera.position.set(0, 0, 0);
-    camera.lookAt(0, 0, -1);
-    gl.setClearColor(new THREE.Color('#000510'), 1);
-  }, [camera, gl]);
+    camera.position.set(0, 40, 160);
+    camera.lookAt(0, 0, 0);
 
-  useFrame(({ clock }) => {
-    const t = clock.getElapsedTime();
-    setAnimationPhase((t / 10) % 1);
-  });
+    const onScroll = () => {
+      const scrollY = window.scrollY;
+      const maxScroll = document.body.scrollHeight - window.innerHeight;
+      const progress = scrollY / maxScroll;
+
+      camera.position.z = 160 - progress * 60;
+      camera.position.y = 40 - progress * 30;
+    };
+
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [camera]);
 
   return (
     <>
       <ambientLight intensity={0.3} />
-      <directionalLight position={[0, 10, 20]} intensity={1.5} castShadow color="#ffffff" />
-      <pointLight position={[-10, 0, -5]} intensity={0.6} color="#9370DB" distance={30} decay={2} />
-      <pointLight position={[10, 0, -5]} intensity={0.6} color="#FF6B6B" distance={30} decay={2} />
-
-      <BackgroundParticles />
-
-      {productModels.map((model, index) => (
-        <Suspense key={model.name} fallback={null}>
-          <FloatingProductModel model={model} animationPhase={animationPhase} index={index} />
-        </Suspense>
+      <Sun />
+      {PLANETS.map((planet, idx) => (
+        <Planet key={idx} {...planet} />
       ))}
+      <Stars />
     </>
   );
-};
+}
 
-// Main Banner Component
-const ThreeJSBanner = () => {
+export default function ThreeJSBanner() {
   return (
     <div className="w-full h-screen relative">
       <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-transparent to-black/50 z-10 pointer-events-none" />
-      <div className="absolute inset-0 opacity-10 z-10 pointer-events-none"
-        style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.1) 2px, rgba(255,255,255,0.1) 4px)' }} />
-      <Canvas camera={{ position: [0, 0, 0], fov: 60, near: 0.1, far: 100 }} shadows>
+      <div
+        className="absolute inset-0 opacity-10 z-10 pointer-events-none"
+        style={{
+          backgroundImage:
+            "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.1) 2px, rgba(255,255,255,0.1) 4px)",
+        }}
+      />
+      <Canvas camera={{ fov: 60, near: 0.1, far: 1000 }} shadows>
         <Suspense fallback={null}>
-          <Scene />
+          <SolarSystem />
         </Suspense>
       </Canvas>
     </div>
   );
-};
-
-export default ThreeJSBanner;
+}
