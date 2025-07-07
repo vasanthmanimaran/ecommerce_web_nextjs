@@ -10,8 +10,16 @@ const app = express();
 // DB
 require('./src/mongo/mongo');
 
-// Middleware
-app.use(cors({ origin: 'http://localhost:3000' }));
+// Middleware - Updated CORS configuration
+app.use(cors({
+  origin: [
+    'http://localhost:3000', // For local development
+    'https://ecommerce-web-nextjs-6.onrender.com' // Your live frontend
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
