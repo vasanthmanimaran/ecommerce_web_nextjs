@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getcard } from '../../home/services/services';
 
-const Categories = () => {
+const CategoriesContent = () => {
   const [cardsData, setCardsData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -14,6 +14,7 @@ const Categories = () => {
   const [error, setError] = useState(null);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const searchQuery = searchParams?.get("search") || null;
 
   useEffect(() => {
     const fetchCards = async () => {
@@ -23,7 +24,7 @@ const Categories = () => {
           const formatted = response.map((card) => ({
             id: card._id,
             imageUrl: card.imageUrl?.startsWith('/uploads')
-              ? `http://localhost:7004${card.imageUrl}`
+              ? `${process.env.NEXT_PUBLIC_API_URL}${card.imageUrl}`
               : card.imageUrl || '/fallback-image.jpg',
             title: card.title || 'Untitled',
             alt: card.alt || `Image for ${card.title || 'card'}`,
@@ -38,8 +39,9 @@ const Categories = () => {
         } else {
           setError('No products available');
         }
-      } catch {
+      } catch (err) {
         setError('Failed to fetch products');
+        console.error(err);
       } finally {
         setIsLoading(false);
       }
@@ -48,9 +50,7 @@ const Categories = () => {
     fetchCards();
   }, []);
 
-  // Apply search filter if ?search= is present
   useEffect(() => {
-    const searchQuery = searchParams.get("search");
     if (searchQuery && cardsData.length > 0) {
       const query = searchQuery.toLowerCase();
       const filtered = cardsData.filter(
@@ -61,16 +61,15 @@ const Categories = () => {
       setFilteredData(filtered);
       setSelectedCategory('all');
     }
-  }, [searchParams, cardsData]);
+  }, [searchQuery, cardsData]);
 
   const handleCategoryChange = (category) => {
     setSelectedCategory(category);
-    if (category === 'all') {
-      setFilteredData(cardsData);
-    } else {
-      const filtered = cardsData.filter(item => item.type === category);
-      setFilteredData(filtered);
-    }
+    setFilteredData(
+      category === 'all' 
+        ? cardsData 
+        : cardsData.filter(item => item.type === category)
+    );
   };
 
   const renderStars = (rating) => (
@@ -79,25 +78,29 @@ const Categories = () => {
     ))
   );
 
+  if (isLoading) return null; // Loading handled by Suspense
+
+  if (error) return <div className="text-center text-red-400 text-lg">{error}</div>;
+
   return (
     <div className="bg-black text-white min-h-screen py-12 px-4 sm:px-8 md:px-16 my-10">
       <h1 className="text-3xl font-bold text-center mb-6">Browse by Category</h1>
 
-      {/* Show search info if present */}
-      {searchParams.get("search") && (
+      {searchQuery && (
         <h2 className="text-center text-gray-300 mb-6 text-sm">
-          Showing results for: <span className="text-cyan-400">"{searchParams.get("search")}"</span>
+          Showing results for: <span className="text-cyan-400">"{searchQuery}"</span>
         </h2>
       )}
 
-      {/* Category Buttons */}
       <div className="flex flex-wrap justify-center gap-4 mb-10">
         {categories.map((cat) => (
           <button
             key={cat}
             onClick={() => handleCategoryChange(cat)}
             className={`px-4 py-2 rounded-full border transition ${
-              selectedCategory === cat ? 'bg-cyan-500 text-white' : 'bg-gray-800 text-gray-300 hover:bg-cyan-700'
+              selectedCategory === cat 
+                ? 'bg-cyan-500 text-white' 
+                : 'bg-gray-800 text-gray-300 hover:bg-cyan-700'
             }`}
           >
             {cat.charAt(0).toUpperCase() + cat.slice(1)}
@@ -105,52 +108,47 @@ const Categories = () => {
         ))}
       </div>
 
-      {isLoading && (
-        <div className="flex justify-center items-center h-40">
-          <div className="animate-spin h-10 w-10 border-4 border-gray-400 rounded-full border-t-transparent" />
-        </div>
-      )}
-
-      {error && (
-        <div className="text-center text-red-400 text-lg">{error}</div>
-      )}
-
-      {!isLoading && !error && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
-          {filteredData.length > 0 ? (
-            filteredData.map((item) => (
-              <div
-                key={item.id}
-                onClick={() => router.push(`/product/${item.id}`)}
-                className="cursor-pointer border border-gray-700 rounded-xl overflow-hidden shadow-md bg-gray-900 hover:border-cyan-400 hover:shadow-lg transition"
-              >
-                <div className="relative w-full h-64">
-                  <Image
-                    src={item.imageUrl}
-                    alt={item.alt}
-                    fill
-                    className="object-cover grayscale hover:grayscale-0 transition duration-300"
-                  />
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+        {filteredData.length > 0 ? (
+          filteredData.map((item) => (
+            <div
+              key={item.id}
+              onClick={() => router.push(`/product/${item.id}`)}
+              className="cursor-pointer border border-gray-700 rounded-xl overflow-hidden shadow-md bg-gray-900 hover:border-cyan-400 hover:shadow-lg transition"
+            >
+              <div className="relative w-full h-64">
+                <Image
+                  src={item.imageUrl}
+                  alt={item.alt}
+                  fill
+                  className="object-cover grayscale hover:grayscale-0 transition duration-300"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                />
+              </div>
+              <div className="p-4">
+                <h3 className="text-lg font-semibold mb-2 text-center hover:text-cyan-400 transition">
+                  {item.title}
+                </h3>
+                <div className="flex justify-center items-center">
+                  {renderStars(item.ratings)}
+                  <span className="ml-2 text-sm text-gray-400">
+                    ({item.ratings.toFixed(1)})
+                  </span>
                 </div>
-                <div className="p-4">
-                  <h3 className="text-lg font-semibold mb-2 text-center hover:text-cyan-400 transition">{item.title}</h3>
-                  <div className="flex justify-center items-center">
-                    {renderStars(item.ratings)}
-                    <span className="ml-2 text-sm text-gray-400">({item.ratings.toFixed(1)})</span>
-                  </div>
-                  <div className="text-center text-white font-bold text-lg">
-                    ₹{item.price?.toLocaleString('en-IN')}
-                  </div>
+                <div className="text-center text-white font-bold text-lg">
+                  ₹{item.price?.toLocaleString('en-IN')}
                 </div>
               </div>
-            ))
-          ) : (
-            <div className="col-span-full text-center text-gray-400 text-lg">No results found.</div>
-          )}
-        </div>
-      )}
+            </div>
+          ))
+        ) : (
+          <div className="col-span-full text-center text-gray-400 text-lg">
+            No results found.
+          </div>
+        )}
+      </div>
     </div>
   );
 };
 
-export default Categories;
+export default CategoriesContent;
