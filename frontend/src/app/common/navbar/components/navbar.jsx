@@ -1,18 +1,23 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import Link from "next/link";
-import { Search, Menu, X } from "lucide-react";
+import React, { useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { Search, Menu, X } from 'lucide-react';
 
 const Navbar = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const router = useRouter();
 
   const handleSearch = (e) => {
     e.preventDefault();
-    const query = e.target.elements.search.value;
-    console.log("Search query:", query);
-    setIsSearchOpen(false);
+    const query = e.target.elements.search.value.trim();
+    if (query) {
+      router.push(`/categories?search=${encodeURIComponent(query)}`);
+      setIsSearchOpen(false);
+      setIsMenuOpen(false);
+    }
   };
 
   const toggleSearch = () => {
@@ -28,7 +33,6 @@ const Navbar = () => {
   return (
     <nav className="fixed flex top-0 z-50 w-full bg-black shadow-md shadow-gray-900 font-sans">
       <div className="max-w-screen-xl mx-auto flex flex-col px-4 sm:px-6 lg:px-8 py-3">
-        {/* Top Row */}
         <div className="flex items-center justify-between">
           {/* Desktop Nav */}
           <div className="hidden lg:flex items-center space-x-8">
@@ -36,6 +40,7 @@ const Navbar = () => {
             <Link href="/allproducts" className="text-white hover:text-yellow-300 text-sm">All Products</Link>
             <Link href="/categories" className="text-white hover:text-yellow-300 text-sm">Categories</Link>
             <Link href="/cart" className="text-white hover:text-yellow-300 text-sm">Cart</Link>
+            <Link href="/profile" className="text-white hover:text-yellow-300 text-sm">Profile</Link>
             <Link href="/login" className="text-white border border-white px-4 py-1.5 rounded hover:border-yellow-300 hover:text-yellow-300 hover:scale-105 transition duration-300 text-sm">Login</Link>
 
             {/* Search */}

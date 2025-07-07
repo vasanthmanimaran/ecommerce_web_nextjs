@@ -8,4 +8,3 @@ mongoose.connect(process.env.MongoDB_URL)
 .catch(err => console.error("MongoDB Connection Failed:", err));
 
 module.exports = mongoose;
-

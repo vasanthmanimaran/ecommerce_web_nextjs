@@ -21,12 +21,22 @@ export const getcardbyid = async (id) => {
     return {
       ...res.data,
       imageUrl: res.data.imageUrl?.startsWith('/uploads')
-        ? `http://localhost:7000${res.data.imageUrl}`
+        ? `http://localhost:7004${res.data.imageUrl}`
         : res.data.imageUrl,
     };
   } catch (err) {
     console.error('Error fetching product by ID:', err);
     throw err;
+  }
+};
+// ✅ Fetch all top sellers
+export const gettopseller = async () => {
+  try {
+    const res = await apiInstance.get('/gettopseller');
+    return res.data;
+  } catch (err) {
+    console.error('Error fetching top sellers:', err);
+    return [];
   }
 };
 

@@ -1,0 +1,9 @@
+
+<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <pattern id="scanlines" width="100%" height="6" patternUnits="userSpaceOnUse">
+      <rect width="100%" height="3" fill="rgba(0,255,255,0.05)" />
+    </pattern>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#scanlines)" />
+</svg>

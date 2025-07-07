@@ -22,16 +22,25 @@ const AuthenticationPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            // Replace with your backend API
-            const response = await fetch(`http://localhost:7000/api/${isLogin ? 'login' : 'register'}`, {
+            const payload = isLogin
+                ? { email: formData.email, password: formData.password }
+                : { username: formData.name, email: formData.email, password: formData.password };
+
+            const response = await fetch(`http://localhost:7004/${isLogin ? 'login' : 'register'}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData),
+                body: JSON.stringify(payload),
             });
 
             const data = await response.json();
+
             if (!response.ok) throw new Error(data.message || 'Something went wrong');
-            // On successful login/register, redirect to homepage or dashboard
+
+            if (isLogin) {
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+            }
+
             router.push('/');
         } catch (err) {
             setError(err.message);

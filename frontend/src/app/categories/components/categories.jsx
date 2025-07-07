@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { getcard } from '../../home/services/services';
 
 const Categories = () => {
@@ -13,6 +13,7 @@ const Categories = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     const fetchCards = async () => {
@@ -22,7 +23,7 @@ const Categories = () => {
           const formatted = response.map((card) => ({
             id: card._id,
             imageUrl: card.imageUrl?.startsWith('/uploads')
-              ? `http://localhost:7000${card.imageUrl}`
+              ? `http://localhost:7004${card.imageUrl}`
               : card.imageUrl || '/fallback-image.jpg',
             title: card.title || 'Untitled',
             alt: card.alt || `Image for ${card.title || 'card'}`,
@@ -47,6 +48,21 @@ const Categories = () => {
     fetchCards();
   }, []);
 
+  // Apply search filter if ?search= is present
+  useEffect(() => {
+    const searchQuery = searchParams.get("search");
+    if (searchQuery && cardsData.length > 0) {
+      const query = searchQuery.toLowerCase();
+      const filtered = cardsData.filter(
+        (item) =>
+          item.title.toLowerCase().includes(query) ||
+          item.type.toLowerCase().includes(query)
+      );
+      setFilteredData(filtered);
+      setSelectedCategory('all');
+    }
+  }, [searchParams, cardsData]);
+
   const handleCategoryChange = (category) => {
     setSelectedCategory(category);
     if (category === 'all') {
@@ -65,9 +81,16 @@ const Categories = () => {
 
   return (
     <div className="bg-black text-white min-h-screen py-12 px-4 sm:px-8 md:px-16 my-10">
-      <h1 className="text-3xl font-bold text-center mb-10">Browse by Category</h1>
+      <h1 className="text-3xl font-bold text-center mb-6">Browse by Category</h1>
 
-      {/* Category Filter Buttons */}
+      {/* Show search info if present */}
+      {searchParams.get("search") && (
+        <h2 className="text-center text-gray-300 mb-6 text-sm">
+          Showing results for: <span className="text-cyan-400">"{searchParams.get("search")}"</span>
+        </h2>
+      )}
+
+      {/* Category Buttons */}
       <div className="flex flex-wrap justify-center gap-4 mb-10">
         {categories.map((cat) => (
           <button
@@ -94,32 +117,36 @@ const Categories = () => {
 
       {!isLoading && !error && (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
-          {filteredData.map((item) => (
-            <div
-              key={item.id}
-              onClick={() => router.push(`/product/${item.id}`)}
-              className="cursor-pointer border border-gray-700 rounded-xl overflow-hidden shadow-md bg-gray-900 hover:border-cyan-400 hover:shadow-lg transition"
-            >
-              <div className="relative w-full h-64">
-                <Image
-                  src={item.imageUrl}
-                  alt={item.alt}
-                  fill
-                  className="object-cover grayscale hover:grayscale-0 transition duration-300"
-                />
-              </div>
-              <div className="p-4">
-                <h3 className="text-lg font-semibold mb-2 text-center hover:text-cyan-400 transition">{item.title}</h3>
-                <div className="flex justify-center items-center">
-                  {renderStars(item.ratings)}
-                  <span className="ml-2 text-sm text-gray-400">({item.ratings.toFixed(1)})</span>
+          {filteredData.length > 0 ? (
+            filteredData.map((item) => (
+              <div
+                key={item.id}
+                onClick={() => router.push(`/product/${item.id}`)}
+                className="cursor-pointer border border-gray-700 rounded-xl overflow-hidden shadow-md bg-gray-900 hover:border-cyan-400 hover:shadow-lg transition"
+              >
+                <div className="relative w-full h-64">
+                  <Image
+                    src={item.imageUrl}
+                    alt={item.alt}
+                    fill
+                    className="object-cover grayscale hover:grayscale-0 transition duration-300"
+                  />
                 </div>
-                <div className="text-center text-white font-bold text-lg">
-                  ₹{item.price?.toLocaleString('en-IN')}
+                <div className="p-4">
+                  <h3 className="text-lg font-semibold mb-2 text-center hover:text-cyan-400 transition">{item.title}</h3>
+                  <div className="flex justify-center items-center">
+                    {renderStars(item.ratings)}
+                    <span className="ml-2 text-sm text-gray-400">({item.ratings.toFixed(1)})</span>
+                  </div>
+                  <div className="text-center text-white font-bold text-lg">
+                    ₹{item.price?.toLocaleString('en-IN')}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))
+          ) : (
+            <div className="col-span-full text-center text-gray-400 text-lg">No results found.</div>
+          )}
         </div>
       )}
     </div>

@@ -19,7 +19,7 @@ const Allproducts = () => {
           const formatted = response.map((card) => ({
             id: card._id,
             imageUrl: card.imageUrl?.startsWith('/uploads')
-              ? `http://localhost:7000${card.imageUrl}`
+              ? `http://localhost:7004${card.imageUrl}`
               : card.imageUrl || '/fallback-image.jpg',
             title: card.title || 'Untitled',
             alt: card.alt || `Image for ${card.title || 'card'}`,

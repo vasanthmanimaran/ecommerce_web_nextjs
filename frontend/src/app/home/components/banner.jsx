@@ -17,7 +17,7 @@ const Banner = () => {
           const fetched = response.map((banner) => ({
             id: banner._id,
             imageUrl: banner.imageUrl?.startsWith('/uploads')
-              ? `http://localhost:7000${banner.imageUrl}`
+              ? `http://localhost:7004${banner.imageUrl}`
               : banner.imageUrl,
             title: banner.title,
             subtitle: banner.subtitle,

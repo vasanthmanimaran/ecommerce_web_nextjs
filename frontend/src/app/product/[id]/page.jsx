@@ -1,4 +1,5 @@
 'use client';
+
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation'; // ✅ correct for App Router
 import { getcardbyid } from '@/app/home/services/services'; // adjust path if needed
