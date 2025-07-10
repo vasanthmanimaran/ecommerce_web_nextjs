@@ -3,7 +3,7 @@ const router = express.Router();
 const upload = require('../multer/multer');
 
 router.use(require('./authroutes'));
-router.use('/protected', require('../middleware/protectedroute'));
+router.use('/middleware', require('../middleware/middileware'));
 
 
 router.use('/cart', require('./cart.route'));

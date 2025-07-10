@@ -146,21 +146,9 @@ function SolarSystem() {
   const { camera } = useThree();
 
   useEffect(() => {
-    camera.position.set(0, 40, 160);
-    camera.lookAt(0, 0, 0);
-
-    const onScroll = () => {
-      const scrollY = window.scrollY;
-      const maxScroll = document.body.scrollHeight - window.innerHeight;
-      const progress = scrollY / maxScroll;
-
-      camera.position.z = 160 - progress * 60;
-      camera.position.y = 40 - progress * 30;
-    };
-
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
-  }, [camera]);
+  camera.position.set(0, 40, 160);
+  camera.lookAt(0, 0, 0);
+}, [camera]);
 
   return (
     <>

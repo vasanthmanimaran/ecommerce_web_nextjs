@@ -15,7 +15,7 @@ const cardSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['headphones', 'speakers', 'earphones', 'keyboard','speaker','mouse'],
+    enum: ['headphones', 'speakers', 'earbuds', 'keyboard','speaker','mouse','playstation','joystick'],
   },
   ratings: {
     type: Number,

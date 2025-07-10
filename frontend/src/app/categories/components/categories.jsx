@@ -24,7 +24,7 @@ const CategoriesContent = () => {
           const formatted = response.map((card) => ({
             id: card._id,
             imageUrl: card.imageUrl?.startsWith('/uploads')
-              ? `${process.env.NEXT_PUBLIC_API_URL}${card.imageUrl}`
+              ? `http://localhost:7004${card.imageUrl}`
               : card.imageUrl || '/fallback-image.jpg',
             title: card.title || 'Untitled',
             alt: card.alt || `Image for ${card.title || 'card'}`,
